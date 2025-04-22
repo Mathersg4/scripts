@@ -1,0 +1,297 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+boxmodule = require(game:GetService("ReplicatedStorage").Modules.BoxModule)
+hi = getsenv(game:GetService("Players").LocalPlayer.PlayerGui.MainGUI.Inventory.NewItem)._G
+itemdatabase = require(game:GetService("ReplicatedStorage").Database.Sync.Item)
+getgenv().newValue = ""
+
+
+function getrandombox()
+    local boxes = require(game:GetService("ReplicatedStorage").Database.Sync.MysteryBox)
+    if not boxes or next(boxes) == nil then
+        return nil
+    end
+    local keys = {}
+    for k,_ in pairs(boxes) do
+        table.insert(keys, k)
+    end
+    local randomIndex = math.random(1, #keys)
+    return keys[randomIndex]
+end
+
+function opencrate(ITEM_NAME)
+    print(ITEM_NAME)
+    boxmodule.OpenBox(getrandombox(), ITEM_NAME)
+    hi.NewItem(ITEM_NAME, nil, nil, 'Weapons', 1)
+end
+
+function getrawnamebyrealname(realname)
+    for i,v in pairs(itemdatabase) do
+        if realname == string.lower(i) then
+            return i
+        elseif realname == i then
+            return i
+        end
+    end
+end
+
+function getImage(iname)
+    for name,info in pairs(itemdatabase) do
+        if iname == string.lower(name) then
+            return info.Image
+        elseif iname == name then
+            return info.Image
+        end
+    end
+end
+
+
+
+function fakeItem()
+local jj = Instance.new("Frame")
+    jj.Name = "NewItem"
+        if game.Players.LocalPlayer.PlayerGui.MainGUI:FindFirstChild("Game") and game.Players.LocalPlayer.PlayerGui.MainGUI.Game:FindFirstChild("Inventory") then
+            jj.Parent = game:GetService("Players").LocalPlayer.PlayerGui.MainGUI.Game.Inventory.Main.Weapons.Items.Container.Classic.Container
+        elseif game.Players.LocalPlayer.PlayerGui.MainGUI:FindFirstChild("Lobby") and game.Players.LocalPlayer.PlayerGui.MainGUI.Lobby.Screens:FindFirstChild("Inventory") then
+            jj.Parent = game:GetService("Players").LocalPlayer.PlayerGui.MainGUI.Lobby.Screens.Inventory.Main.Weapons.Items.Container.Classic.Container
+        end
+    jj.Size = UDim2.new(0.200000003, 0, 0.25, 0)
+    jj.BackgroundColor3 = Color3.new(1, 1, 1)
+    jj.BackgroundTransparency = 1
+    jj.BorderColor3 = Color3.new(0.1058823529411765, 0.1647058823529412, 0.207843137254902)
+    jj.BorderMode = "Outline"
+    jj.BorderSizePixel = 1
+    jj.Visible = true
+    local kk = Instance.new("Frame")
+        kk.Name = "Container"
+        kk.Parent = jj
+        kk.Position = UDim2.new(0, 3, 0, 3)
+        kk.Size = UDim2.new(1, -6, 0.824999988, -6)
+        kk.BackgroundColor3 = Color3.new(0.2235294117647059, 0.2235294117647059, 0.2235294117647059)
+        kk.BackgroundTransparency = 0
+        kk.BorderColor3 = Color3.new(0, 0, 0)
+        kk.BorderMode = "Outline"
+        kk.BorderSizePixel = 2
+        kk.Visible = true
+        local ll = Instance.new("ImageLabel")
+            ll.Parent = kk
+            ll.AnchorPoint = Vector2.new(0.5, 0.5)
+            ll.BackgroundColor3 = Color3.new(1, 1, 1)
+            ll.BackgroundTransparency = 1
+            ll.Name = "Icon"
+            ll.Size = UDim2.new(1, 0, 1, 0)
+            ll.Position = UDim2.new(0.5, 0, 0.5, 0)
+            ll.Image = getImage(getgenv().newValue)
+            ll.ImageColor3 = Color3.new(1,1,1)
+            ll.ImageTransparency = 0
+            ll.TileSize = UDim2.new(1, 0, 1, 0)
+        local hh = Instance.new("TextLabel")
+            hh.TextScaled = true
+            hh.TextWrapped = true
+            hh.Font = "SourceSans"
+            hh.AnchorPoint = Vector2.new(1, 0)
+            hh.BackgroundTransparency = 1
+            hh.Name = "Amount"
+            hh.Parent = kk
+            hh.Position = UDim2.new(1, -4, 0, 3)
+            hh.Size = UDim2.new(0.5, 0, 0.224999994, 0)
+            hh.Text = ""
+            hh.TextColor3 = Color3.new(1,1,1)
+            hh.TextSize = 18
+            hh.TextStrokeTransparency = 0.9
+            hh.TextXAlignment = "Right"
+
+    local gg = Instance.new("Frame")
+    gg.Name = "ItemName"
+    gg.Parent = jj
+    gg.Position = UDim2.new(0, 3, 0.800000012, 3)
+    gg.Size = UDim2.new(1, -6, 0.200000018, -4)
+    for name,info in pairs(itemdatabase) do
+        if getgenv().newValue == string.lower(name) then
+            if info.Rarity == "Godly" then
+                gg.BackgroundColor3 = Color3.new(1, 0, 0.7019607843137255)
+            elseif info.Rarity == "Ancient" then
+                gg.BackgroundColor3 = Color3.new(0.392156862745098, 0.0392156862745098, 1)
+            end
+        elseif getgenv().newValue == name then
+            if info.Rarity == "Godly" then
+                gg.BackgroundColor3 = Color3.new(1, 0, 0.7019607843137255)
+            elseif info.Rarity == "Ancient" then
+                gg.BackgroundColor3 = Color3.new(0.392156862745098, 0.0392156862745098, 1)
+            end
+        end
+    end
+    gg.BackgroundTransparency = 0
+    gg.BorderColor3 = Color3.new(0, 0, 0)
+    gg.BorderMode = "Outline"
+    gg.BorderSizePixel = 2
+    local bg = Instance.new("ImageLabel")
+        bg.Name = "BG"
+        bg.Parent = gg
+        bg.Size = UDim2.new(1, 0, 1, 0)
+        bg.Position = UDim2.new(0, 0, 0, 0)
+        bg.BackgroundTransparency = 1
+        bg.Image = "rbxassetid://2957790421"
+        bg.TileSize = UDim2.new(1, 0, 1, 0)
+    local lb = Instance.new("TextLabel")
+        lb.Name = "Label"
+        lb.Parent = gg
+        lb.AnchorPoint = Vector2.new(0.5, 0.5)
+        lb.BackgroundTransparency = 1
+        lb.Position = UDim2.new(0.5, 0, 0.5, 0)
+        lb.Size = UDim2.new(0.9, 0, 0.9, 0)
+        lb.TextColor3 = Color3.new(1, 1, 1)
+        lb.LineHeight = 1
+        lb.Text = getgenv().newValue
+        lb.TextSize = 14
+        lb.TextStrokeTransparency = 0.7
+        lb.Font = "SourceSansBold"
+        lb.TextScaled = true
+    local tt = Instance.new("Frame")
+        tt.Name = "Tags"
+        tt.Parent = jj
+        tt.Position = UDim2.new(0, 4, -0.174999997, -4)
+        tt.Size = UDim2.new(1, 0, 1, 0)
+        tt.BackgroundTransparency = 1
+        local ww = Instance.new("UIListLayout")
+            ww.Parent = tt
+            ww.FillDirection = "Vertical"
+            ww.HorizontalAlignment = "Left"
+            ww.SortOrder = "LayoutOrder"
+            ww.VerticalAlignment = "Bottom"
+        local rr = Instance.new("Frame")
+            rr.Name = "FX"
+            rr.Parent = tt
+            rr.AnchorPoint = Vector2.new(0,1)
+            rr.Position = UDim2.new(0, 3, 0.800000012, -3)
+            rr.Size = UDim2.new(0.5, 0, 0.125, 0)
+            rr.BackgroundTransparency = 0
+            rr.BackgroundColor3 = Color3.new(255, 255, 255)
+            rr.BorderColor3 = Color3.new(0, 0, 0)
+            rr.BorderMode = "Outline"
+            rr.BorderSizePixel = 1
+            local ee = Instance.new("UIGradient")
+                ee.Parent = rr
+                ee.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 92, 4)), ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 188, 4))}
+                ee.Enabled = true
+            local qq = Instance.new("UIListLayout")
+            qq.Parent = rr
+            qq.Padding = UDim.new(0,2)
+            qq.FillDirection = "Horizontal"
+            qq.HorizontalAlignment = "Center"
+            qq.SortOrder = "LayoutOrder"
+            qq.VerticalAlignment = "Center"
+            local aa = Instance.new("UIPadding")
+                aa.Parent = rr
+                aa.PaddingBottom = UDim.new(0,2)
+                aa.PaddingLeft = UDim.new(0,2)
+                aa.PaddingRight = UDim.new(0,0)
+                aa.PaddingTop = UDim.new(0,1)
+            local oo = Instance.new("ImageLabel")
+                oo.Parent = rr
+                oo.BackgroundTransparency = 1
+                oo.Size = UDim2.new(0.5,0,1,0)
+                oo.Image = "rbxassetid://362390166"
+                oo.ImageColor3 = Color3.new(1,1,1)
+                oo.TileSize = UDim2.new(1,0,1,0)
+                local pp = Instance.new("UIAspectRatioConstraint")
+                    pp.Name = "UIAspectRatioConstraint"
+                    pp.Parent = oo
+                    pp.AspectRatio = 1
+                    pp.AspectType = "FitWithinMaxSize"
+                    pp.DominantAxis = "Width"
+                local uuu = Instance.new("UIGradient")
+                    uuu.Parent = oo
+                    uuu.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 252, 4)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255,164,4))}
+                    uuu.Rotation = -180
+            local lll = Instance.new("TextLabel")
+                lll.Parent = rr
+                lll.AnchorPoint = Vector2.new(0.5,0.5)
+                lll.BackgroundTransparency = 1
+                lll.Position = UDim2.new(0.5,0,0.5,0)
+                lll.Size = UDim2.new(0.7,0,1,4)
+                lll.Font = "SourceSansBold"
+                lll.TextColor3 = Color3.new(1,1,1)
+                lll.Text = "Valiuss_"
+                lll.TextStrokeTransparency = 0.5
+                lll.TextSize = 25
+                lll.TextScaled = true
+end
+
+
+local Window = Rayfield:CreateWindow({
+   Name = "Item Spawner",
+   Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
+   LoadingTitle = "Item Spawner",
+   LoadingSubtitle = "by Valiuss_",
+   Theme = "Ocean", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
+
+   ConfigurationSaving = {
+      Enabled = false,
+      FolderName = nil, -- Create a custom folder for your hub/game
+      FileName = "valiuss_"
+   },
+
+   Discord = {
+      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
+      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
+      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+   },
+
+   KeySystem = false, -- Set this to true to use our key system
+   KeySettings = {
+      Title = "Untitled",
+      Subtitle = "Key System",
+      Note = "No method of obtaining the key is provided", -- Use this to tell the user how to get a key
+      FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+      SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+      Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+   }
+})
+
+
+--[[Rayfield:Notify({
+   Title = "Loading...",
+   Content = "Wait 3 minutes",
+   Duration = 60,
+   Image = 4483362458,
+})
+wait(60)
+Rayfield:Notify({
+   Title = "Loading...",
+   Content = "Wait 2 minutes",
+   Duration = 60,
+   Image = 4483362458,
+})
+wait(60)
+Rayfield:Notify({
+   Title = "Loading...",
+   Content = "Wait 1 minute",
+   Duration = 60,
+   Image = 4483362458,
+})
+wait(60)]]
+local Tab = Window:CreateTab("Spawner", 4483362458) -- Title, Image
+local Section = Tab:CreateSection("Youtube: Valiuss_")
+
+local Input = Tab:CreateInput({
+   Name = "Item",
+   CurrentValue = "",
+   PlaceholderText = "Item",
+   RemoveTextAfterFocusLost = false,
+   Flag = "Input1",
+   Callback = function(Value)
+    getgenv().newValue = getrawnamebyrealname(Value)
+   end,
+})
+
+local Button = Tab:CreateButton({
+   Name = "Spawn Item",
+   Callback = function()
+    opencrate(getgenv().newValue)
+    fakeItem()
+   end,
+})
