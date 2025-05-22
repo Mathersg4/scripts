@@ -1,0 +1,318 @@
+-- First script (your farming GUI)
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+-- Ожидание загрузки игры
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+-- Создание GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "FarmMenu"
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 200, 0, 150)
+MainFrame.Position = UDim2.new(0.5, -100, 0.5, -75)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 8)
+Corner.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Position = UDim2.new(0, 0, 0, 0)
+Title.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+Title.Text = "Farm Menu"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 14
+Title.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = Title
+
+-- Кнопка для монет
+local CoinButton = Instance.new("TextButton")
+CoinButton.Name = "CoinButton"
+CoinButton.Size = UDim2.new(0.9, 0, 0, 30)
+CoinButton.Position = UDim2.new(0.05, 0, 0.25, 0)
+CoinButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+CoinButton.Text = "Coin Farm: OFF"
+CoinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CoinButton.Font = Enum.Font.Gotham
+CoinButton.TextSize = 12
+CoinButton.Parent = MainFrame
+
+local ButtonCorner1 = Instance.new("UICorner")
+ButtonCorner1.CornerRadius = UDim.new(0, 6)
+ButtonCorner1.Parent = CoinButton
+
+-- Кнопка для яиц
+local EggButton = Instance.new("TextButton")
+EggButton.Name = "EggButton"
+EggButton.Size = UDim2.new(0.9, 0, 0, 30)
+EggButton.Position = UDim2.new(0.05, 0, 0.55, 0)
+EggButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+EggButton.Text = "Egg Farm: OFF"
+EggButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+EggButton.Font = Enum.Font.Gotham
+EggButton.TextSize = 12
+EggButton.Parent = MainFrame
+
+local ButtonCorner2 = Instance.new("UICorner")
+ButtonCorner2.CornerRadius = UDim.new(0, 6)
+ButtonCorner2.Parent = EggButton
+
+-- Переменные для состояния
+local coinFarmActive = false
+local eggFarmActive = false
+local coinThread = nil
+local eggThread = nil
+
+-- Функция для скрипта монет
+local function coinFarmScript()
+    local Players = game:GetService("Players")
+    local TweenService = game:GetService("TweenService")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Player = Players.LocalPlayer
+    local Character = Player.Character or Player.CharacterAdded:Wait()
+    local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+    local EggCollected = ReplicatedStorage.Remotes.Gameplay.CoinCollected
+    local RoundStart = ReplicatedStorage.Remotes.Gameplay.RoundStart
+    local RoundEnd = ReplicatedStorage.Remotes.Gameplay.RoundEndFade
+    local start_position = HumanoidRootPart.CFrame
+    local farming = true
+    local bag_full = false
+
+    local VirtualUser = game:GetService("VirtualUser")
+    Player.Idled:Connect(function()
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton2(Vector2.new())
+    end)
+
+    local function get_nearest_egg()
+        local closest_egg, min_distance = nil, math.huge
+        for _, model in pairs(workspace:GetChildren()) do
+            if model:FindFirstChild("CoinContainer") then
+                for _, egg in pairs(model.CoinContainer:GetChildren()) do
+                    if egg:GetAttribute("CoinID") == "coin" and egg:FindFirstChild("TouchInterest") then
+                        local distance = (HumanoidRootPart.Position - egg.Position).Magnitude
+                        if distance < min_distance then
+                            closest_egg = egg
+                            min_distance = distance
+                        end
+                    end
+                end
+            end
+        end
+        return closest_egg, min_distance
+    end
+
+    local function tween_to(position, duration)
+        local tween = TweenService:Create(
+            HumanoidRootPart,
+            TweenInfo.new(duration, Enum.EasingStyle.Linear),
+            {CFrame = position}
+        )
+        tween:Play()
+        return tween
+    end
+
+    EggCollected.OnClientEvent:Connect(function(egg_type, current, max)
+        if egg_type == "coin" and current == max then
+            bag_full = true
+            tween_to(start_position, 2).Completed:Wait()
+            Player.Character.Humanoid.Health = 0
+            bag_full = false
+        end
+    end)
+
+    RoundStart.OnClientEvent:Connect(function()
+        farming = true
+    end)
+
+    RoundEnd.OnClientEvent:Connect(function()
+        farming = false
+    end)
+
+    while coinFarmActive do
+        if farming and not bag_full and Character and HumanoidRootPart then
+            local egg, distance = get_nearest_egg()
+            if egg then
+                if distance > 150 then
+                    HumanoidRootPart.CFrame = egg.CFrame
+                else
+                    local tween = tween_to(egg.CFrame, distance/20)
+                    repeat task.wait() until not egg:FindFirstChild("TouchInterest") or not farming or not coinFarmActive
+                    if tween then tween:Cancel() end
+                end
+            end
+        end
+        task.wait()
+    end
+end
+
+-- Функция для скрипта яиц
+local function eggFarmScript()
+    local Players = game:GetService("Players")
+    local TweenService = game:GetService("TweenService")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Player = Players.LocalPlayer
+    local Character = Player.Character or Player.CharacterAdded:Wait()
+    local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+    local EggCollected = ReplicatedStorage.Remotes.Gameplay.CoinCollected
+    local RoundStart = ReplicatedStorage.Remotes.Gameplay.RoundStart
+    local RoundEnd = ReplicatedStorage.Remotes.Gameplay.RoundEndFade
+    local start_position = HumanoidRootPart.CFrame
+    local farming = true
+    local bag_full = false
+
+    local VirtualUser = game:GetService("VirtualUser")
+    Player.Idled:Connect(function()
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton2(Vector2.new())
+    end)
+
+    local function get_nearest_egg()
+        local closest_egg, min_distance = nil, math.huge
+        for _, model in pairs(workspace:GetChildren()) do
+            if model:FindFirstChild("CoinContainer") then
+                for _, egg in pairs(model.CoinContainer:GetChildren()) do
+                    if egg:GetAttribute("CoinID") == "Egg" and egg:FindFirstChild("TouchInterest") then
+                        local distance = (HumanoidRootPart.Position - egg.Position).Magnitude
+                        if distance < min_distance then
+                            closest_egg = egg
+                            min_distance = distance
+                        end
+                    end
+                end
+            end
+        end
+        return closest_egg, min_distance
+    end
+
+    local function tween_to(position, duration)
+        local tween = TweenService:Create(
+            HumanoidRootPart,
+            TweenInfo.new(duration, Enum.EasingStyle.Linear),
+            {CFrame = position}
+        )
+        tween:Play()
+        return tween
+    end
+
+    EggCollected.OnClientEvent:Connect(function(egg_type, current, max)
+        if egg_type == "Egg" and current == max then
+            bag_full = true
+            tween_to(start_position, 2).Completed:Wait()
+            Player.Character.Humanoid.Health = 0
+            bag_full = false
+        end
+    end)
+
+    RoundStart.OnClientEvent:Connect(function()
+        farming = true
+    end)
+
+    RoundEnd.OnClientEvent:Connect(function()
+        farming = false
+    end)
+
+    while eggFarmActive do
+        if farming and not bag_full and Character and HumanoidRootPart then
+            local egg, distance = get_nearest_egg()
+            if egg then
+                if distance > 150 then
+                    HumanoidRootPart.CFrame = egg.CFrame
+                else
+                    local tween = tween_to(egg.CFrame, distance/20)
+                    repeat task.wait() until not egg:FindFirstChild("TouchInterest") or not farming or not eggFarmActive
+                    if tween then tween:Cancel() end
+                end
+            end
+        end
+        task.wait()
+    end
+end
+
+-- Функция для запуска/остановки скрипта
+local function toggleScript(scriptType, button)
+    if scriptType == "coin" then
+        coinFarmActive = not coinFarmActive
+        if coinFarmActive then
+            button.Text = "Coin Farm: ON"
+            button.BackgroundColor3 = Color3.fromRGB(80, 180, 80)
+            coinThread = coroutine.create(coinFarmScript)
+            coroutine.resume(coinThread)
+        else
+            button.Text = "Coin Farm: OFF"
+            button.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+        end
+    elseif scriptType == "egg" then
+        eggFarmActive = not eggFarmActive
+        if eggFarmActive then
+            button.Text = "Egg Farm: ON"
+            button.BackgroundColor3 = Color3.fromRGB(80, 180, 80)
+            eggThread = coroutine.create(eggFarmScript)
+            coroutine.resume(eggThread)
+        else
+            button.Text = "Egg Farm: OFF"
+            button.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+        end
+    end
+end
+
+-- Обработчики кнопок
+CoinButton.MouseButton1Click:Connect(function()
+    toggleScript("coin", CoinButton)
+end)
+
+EggButton.MouseButton1Click:Connect(function()
+    toggleScript("egg", EggButton)
+end)
+
+-- Плавное перемещение окна
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+MainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
